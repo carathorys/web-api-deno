@@ -9,7 +9,7 @@ import { Constructable } from "../../utils/helpers/types.ts";
 const FromServicesMetadataKey = Symbol("FromServicesMetadataKey");
 
 export const Inject = (parameters?: InjectParameters) =>
-  <T extends Constructable<any>>(
+  <T extends Constructable<unknown>>(
     target: T,
     propertyKey: string | symbol,
     parameterIndex: number,
