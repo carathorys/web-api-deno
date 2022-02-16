@@ -1,0 +1,51 @@
+{
+  "$schema": "https://cdn.deno.land/deno/versions/v1.18.2/raw/cli/schemas/config-file.v1.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": [
+      "deno.worker"
+    ],
+    "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": true
+  },
+  "lint": {
+    "files": {
+      "include": [
+        "src/"
+      ],
+      "exclude": [
+        "src/**/*.spec.ts"
+      ]
+    },
+    "rules": {
+      "tags": [
+        "recommended"
+      ],
+      "include": [
+        "ban-untagged-todo"
+      ],
+      "exclude": [
+        "no-unused-vars"
+      ]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": [
+        "src/"
+      ],
+      "exclude": [
+        "src/testdata/"
+      ]
+    },
+    "options": {
+      "useTabs": false,
+      "lineWidth": 120,
+      "indentWidth": 2,
+      "singleQuote": true,
+      "proseWrap": "preserve"
+    }
+  }
+}

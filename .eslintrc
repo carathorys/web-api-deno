@@ -1,0 +1,36 @@
+{
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly",
+    "ENV_PRODUCTION": "readonly"
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "project": "./tsconfig.json",
+    "tsConfigRootDir": "./",
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "indent": ["error", 2],
+    "comma-dangle": [2, "always-multiline"],
+    "lines-between-class-members": 0,
+    "object-curly-newline": 0,
+    "no-shadow": 0,
+    "@typescript-eslint/indent": 0,
+    "@typescript-eslint/no-shadow": 2,
+    "@typescript-eslint/explicit-function-return-type": 0,
+    "@typescript-eslint/explicit-module-boundary-types": 0,
+    "@typescript-eslint/no-empty-interface": 1,
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ImportDeclaration[source.value=/^\\.\\.\/$/]",
+        "message": "No parent imports (../) allowed, import package and root modules by name, otherwise rewrite to not need to import from parent level"
+      }
+    ]
+  }
+}
