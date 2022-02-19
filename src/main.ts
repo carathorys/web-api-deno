@@ -1,1 +1,1 @@
-import server from './example/index.ts'
+import './example/index.ts'

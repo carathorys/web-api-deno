@@ -12,7 +12,7 @@ export class ServiceDescriptor<T> {
   public readonly implementationInstance?: T;
   public readonly implementationFactory?: ImplementationFactory<T>;
   public readonly provideIn?:
-    | Constructable<any>
+    | Constructable<unknown>
     | 'root'
     | 'platform'
     | 'any';

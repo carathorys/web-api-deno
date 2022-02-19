@@ -3,7 +3,7 @@ import { Constructable } from '../../utils/helpers/types.ts';
 
 export class DIError extends Error {
   constructor(...args: any[]);
-  constructor(private readonly ctor: Constructable<any>, ...args: any[]) {
+  constructor(private readonly ctor: Constructable<unknown>, ...args: any[]) {
     super(...args);
   }
 

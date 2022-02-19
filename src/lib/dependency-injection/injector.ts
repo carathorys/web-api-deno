@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-explicit-any ban-types
 import { Reflect } from 'https://deno.land/x/reflect_metadata@v0.1.12-2/mod.ts';
 
 import { DIError } from './errors/di.error.ts';
@@ -18,14 +17,14 @@ export class Injector implements IDisposable {
    * Static class metadata map, filled by the @Injectable() decorator
    */
   public static meta: Map<
-    Constructable<any>,
+    Constructable<unknown>,
     {
-      dependencies: Array<Constructable<any>>;
+      dependencies: Array<Constructable<unknown>>;
       options: InjectableParameters;
     }
   > = new Map();
 
-  public readonly cachedSingletons: Map<Constructable<any>, any> = new Map();
+  public readonly cachedSingletons: Map<Constructable<unknown>, unknown> = new Map();
 
   public remove<T>(ctor: Constructable<T>) {
     this.cachedSingletons.delete(ctor);
@@ -33,7 +32,7 @@ export class Injector implements IDisposable {
 
   private getOriginalType<T>(ctor: Constructable<T>) {
     if (ctor.name === 'DisposableClass') {
-      return (ctor as any).__baseClass;
+      return (ctor as unknown as { __baseClass: Constructable<T> }).__baseClass;
     }
     return ctor;
   }
@@ -45,7 +44,7 @@ export class Injector implements IDisposable {
    */
   public getInstance<T>(ctor: Constructable<T>, dependencies: Array<Constructable<T>> = []): T {
     if (ctor === this.constructor) {
-      return this as any as T;
+      return this as unknown as T;
     }
 
     const meta = Injector.meta.get(ctor);
@@ -119,14 +118,14 @@ export class Injector implements IDisposable {
    * @param instance The created instance
    * @param key The class key to be persisted (optional, calls back to the instance's constructor)
    */
-
+  // deno-lint-ignore ban-types
   public setExplicitInstance<T extends object>(instance: T, key?: Constructable<T>) {
     const ctor = key || (instance.constructor as Constructable<T>);
     if (!Injector.meta.has(ctor)) {
       const meta = Reflect.getMetadata('design:paramtypes', ctor);
       Injector.meta.set(ctor, {
         dependencies: (meta &&
-          (meta as any[]).map((param) => {
+          (meta as unknown[]).map((param) => {
             return param;
           })) ||
           [],
@@ -134,11 +133,7 @@ export class Injector implements IDisposable {
       });
     }
     if (instance.constructor === this.constructor) {
-      if (ctor.name === 'DisposableClass') {
-        throw new DIError((ctor as any).__baseClass, 'Cannot set an injector instance as injectable');
-      } else {
-        throw new DIError(ctor, 'Cannot set an injector instance as injectable');
-      }
+      throw new DIError(this.getOriginalType(ctor),  'Cannot set an injector instance as injectable');
     }
     this.cachedSingletons.set(ctor, instance);
   }
@@ -157,6 +152,7 @@ export class Injector implements IDisposable {
    * Disposes the Injector object and all its disposable injectables
    */
   public async dispose() {
+    // deno-lint-ignore no-explicit-any
     const singletons = Array.from(this.cachedSingletons.entries()).map((e) => e[1] as any);
     const disposeRequests = singletons
       .filter((s) => s !== this)

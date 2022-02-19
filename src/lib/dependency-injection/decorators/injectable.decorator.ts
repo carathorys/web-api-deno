@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-explicit-any
 import { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12-2/mod.ts";
 import { Constructable } from "../../utils/helpers/types.ts";
 
@@ -17,11 +16,11 @@ export const defaultInjectableParameters: InjectableParameters = {
  * @returns void
  */
 export const Injectable = (options?: Partial<InjectableParameters>) => {
-  return <T extends Constructable<any>>(ctor: T) => {
+  return <T extends Constructable<unknown>>(ctor: T) => {
     const meta = Reflect.getMetadata("design:paramtypes", ctor);
     const metaValue: InjectableMetadata = {
       dependencies: (meta &&
-        (meta as any[]).map((param) => {
+        (meta as unknown[]).map((param) => {
           return param;
         })) ||
         [],

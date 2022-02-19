@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-explicit-any no-unused-vars
 import { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12-2/mod.ts";
 
 import { Constructable } from "../../utils/helpers/types.ts";
@@ -15,7 +14,7 @@ import { ServiceDescriptor } from "../metadata/service-descriptor.model.ts";
  */
 // TODO: implement service decorator!
 export const Service = <T>(parameters: ServiceDecoratorParameters<T>) => {
-  return <T extends Constructable<any>>(ctor: T) => {
+  return <T extends Constructable<unknown>>(ctor: T) => {
     const meta = Reflect.getMetadata("design:paramtypes", ctor);
     const metaValue = new ServiceDescriptor(parameters);
     // console.log(meta, metaValue);
