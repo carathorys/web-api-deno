@@ -1,12 +1,44 @@
-import { serve } from 'https://deno.land/std@0.125.0/http/server.ts';
+import { Context, IMiddleware, Next } from '../lib/web-api/middleware/index.ts';
+import { Server } from '../lib/web-api/server.ts';
+
 const port = 8080;
 
-const handler = (request: Request): Response => {
-  let body = 'Your user-agent is:\n\n';
-  body += request.headers.get('user-agent') || 'Unknown';
+const server = new Server({
+  port,
+  hostname: '0.0.0.0',
+});
 
-  return new Response(body, { status: 200 });
-};
+server.use(async (ctx, next) => {
+  console.log('1 started, next');
+  await next();
+  console.log('1 finished');
+});
 
+server.use(async (ctx, next) => {
+  console.log('2 started, next');
+  await next();
+  console.log('2 finished');
+  // breaks the middleware chain
+});
+
+class MyMiddleware implements IMiddleware {
+  async execute(ctx: Context, next: Next): Promise<void> {
+    console.log('3 started, next');
+    await next();
+    console.log('3 finished');
+  }
+}
+
+server.use(new MyMiddleware());
+class InPlaceMiddleware implements IMiddleware {
+  async execute(ctx: Context, next: Next) {
+    console.log('4 started, next');
+    await next();
+    ctx.response = new Response('Not found', { status: 404 });
+    console.log('4 finished');
+  }
+}
+server.use(InPlaceMiddleware);
 console.log(`HTTP webserver running. Access it at: http://localhost:8080/`);
-await serve(handler, { port });
+await server.listenAndServe();
+// await serve(handler, { port });
