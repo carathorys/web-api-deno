@@ -183,7 +183,7 @@ Deno.test('On dispose error it should write warn logs about the error itself. (1
     assert(error instanceof DisposeError);
     assertEquals(error.message, injectorError.message);
     const disposeError = error as DisposeError;
-    assert(disposeError.cause?.[0].message === instanceDisposeError.message);
+    assert(disposeError.parameters?.[0].message === instanceDisposeError.message);
   });
 
   assert(injectorSpy.called);
@@ -213,7 +213,9 @@ Deno.test('On dispose error it should write warn logs about the error itself. (2
   }, (error: any) => {
     assert(error instanceof DisposeError);
     assert(error.message === injectorError.message);
-    assert(error.cause[0].message === instanceDisposeError.message);
+    assert(
+      error instanceof DisposeError && error.parameters && error.parameters[0].message === instanceDisposeError.message,
+    );
   });
   assert(injectorSpy.called);
   assert(disposeSpy.called && disposeSpy.exceptions.length);

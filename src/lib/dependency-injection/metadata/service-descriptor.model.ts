@@ -16,7 +16,7 @@ export class ServiceDescriptor<T> {
     | 'root'
     | 'platform'
     | 'any';
-  /** */
+
   constructor({
     lifetime,
     serviceType,
