@@ -1,10 +1,10 @@
-import { assert } from "https://deno.land/std@0.125.0/testing/asserts.ts";
+import { assert } from 'https://deno.land/std@0.160.0/testing/asserts.ts';
 
-import { ServiceLifetime } from "../parameters/service-lifetime.enum.ts";
-import { Service } from "./service.decorator.ts";
+import { ServiceLifetime } from '../parameters/service-lifetime.enum.ts';
+import { Service } from './service.decorator.ts';
 
-Deno.test("ServiceDecorator should decorate class", () => {
-  @Service({ lifetime: ServiceLifetime.Singleton, provideIn: "root" })
+Deno.test('ServiceDecorator should decorate class', () => {
+  @Service({ lifetime: ServiceLifetime.Singleton, provideIn: 'root' })
   class MyServiceClass {}
 
   const x = new MyServiceClass();

@@ -1,4 +1,4 @@
-import { Reflect } from 'https://deno.land/x/reflect_metadata@v0.1.12-2/mod.ts';
+import { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
 
 import { DIError } from './errors/di.error.ts';
 
@@ -7,7 +7,8 @@ import { Disposable } from '../disposable/decorators/disposable-decorator.ts';
 import { DisposeError } from '../disposable/errors/dispose.error.ts';
 import { Constructable } from '../utils/helpers/types.ts';
 
-import { InjectableParameters, InjectorParameters, ServiceLifetime } from './parameters/index.ts';
+import type { InjectorParameters } from './parameters/index.ts';
+import { InjectableParameters, ServiceLifetime } from './parameters/index.ts';
 
 @Disposable({ recursive: true })
 export class Injector implements IDisposable {
@@ -133,7 +134,7 @@ export class Injector implements IDisposable {
       });
     }
     if (instance.constructor === this.constructor) {
-      throw new DIError(this.getOriginalType(ctor),  'Cannot set an injector instance as injectable');
+      throw new DIError(this.getOriginalType(ctor), 'Cannot set an injector instance as injectable');
     }
     this.cachedSingletons.set(ctor, instance);
   }

@@ -1,5 +1,4 @@
-// deno-lint-ignore-file no-explicit-any
-import { assert, assertEquals, assertRejects, assertThrows } from 'https://deno.land/std@0.125.0/testing/asserts.ts';
+import { assert, assertEquals, assertRejects, assertThrows } from 'https://deno.land/std@0.160.0/testing/asserts.ts';
 import sinon from 'https://cdn.skypack.dev/sinon@11.1.2?dts';
 
 import { Disposable, DisposeError, IDisposable, using } from '../disposable/index.ts';
@@ -59,13 +58,8 @@ Deno.test('Should throw an error when setting an Injector instance', async () =>
   await using(new Injector(), (i) => {
     assertThrows(
       () => i.setExplicitInstance(new Injector()),
-      (error: any) => {
-        assert(error instanceof DIError);
-        assert(error.message === 'Cannot set an injector instance as injectable');
-        const diError = error as DIError;
-        assert(diError.TypeName);
-        assert(diError.TypeName === 'Injector');
-      },
+      DIError,
+      'Cannot set an injector instance as injectable',
     );
   });
 });
@@ -174,17 +168,16 @@ Deno.test('On dispose error it should write warn logs about the error itself. (1
   const disposeSpy = sinon.spy(testDisposable, 'dispose');
   const injector = new Injector();
   const injectorSpy = sinon.spy(injector, 'dispose');
-  await assertRejects(async () => {
-    await using(injector, (i) => {
-      i.setExplicitInstance(testDisposable);
-      i.setExplicitInstance(new TestInstance());
-    });
-  }, (error: any) => {
-    assert(error instanceof DisposeError);
-    assertEquals(error.message, injectorError.message);
-    const disposeError = error as DisposeError;
-    assert(disposeError.parameters?.[0].message === instanceDisposeError.message);
-  });
+  await assertRejects(
+    async () => {
+      await using(injector, (i) => {
+        i.setExplicitInstance(testDisposable);
+        i.setExplicitInstance(new TestInstance());
+      });
+    },
+    DisposeError,
+    injectorError.message,
+  );
 
   assert(injectorSpy.called);
   assert(disposeSpy.called);
@@ -205,18 +198,16 @@ Deno.test('On dispose error it should write warn logs about the error itself. (2
   const injector = new Injector();
   const disposeSpy = sinon.spy(testDisposable, 'dispose');
   const injectorSpy = sinon.spy(injector, 'dispose');
-  await assertRejects(async () => {
-    await using(injector, (i) => {
-      i.setExplicitInstance(testDisposable);
-      i.setExplicitInstance(new TestInstance());
-    });
-  }, (error: any) => {
-    assert(error instanceof DisposeError);
-    assert(error.message === injectorError.message);
-    assert(
-      error instanceof DisposeError && error.parameters && error.parameters[0].message === instanceDisposeError.message,
-    );
-  });
+  await assertRejects(
+    async () => {
+      await using(injector, (i) => {
+        i.setExplicitInstance(testDisposable);
+        i.setExplicitInstance(new TestInstance());
+      });
+    },
+    DisposeError,
+    injectorError.message,
+  );
   assert(injectorSpy.called);
   assert(disposeSpy.called && disposeSpy.exceptions.length);
 });
@@ -233,15 +224,16 @@ Deno.test('On dispose error it should write warn logs about the error itself. (3
   class TestInstance {}
 
   const testDisposable = new TestDisposable();
-  await assertRejects(async () => {
-    await using(new Injector(), (i) => {
-      i.setExplicitInstance(testDisposable);
-      i.setExplicitInstance(new TestInstance());
-    });
-  }, (error: any) => {
-    assert(error instanceof DisposeError);
-    assertEquals(error.message, injectorError.message);
-  });
+  await assertRejects(
+    async () => {
+      await using(new Injector(), (i) => {
+        i.setExplicitInstance(testDisposable);
+        i.setExplicitInstance(new TestInstance());
+      });
+    },
+    DisposeError,
+    injectorError.message,
+  );
 });
 
 Deno.test('Remove should remove an entity from the cached singletons list', async () => {
@@ -262,18 +254,15 @@ Deno.test('Requesting an undecorated instance should throw an error', async () =
   class UndecoratedTestClass {}
   const expectedError = new DIError(
     UndecoratedTestClass,
-    'No metadata found for \'UndecoratedTestClass\'. Dependencies: Injector. Be sure that it\'s decorated with \'@Injectable()\' or added explicitly with SetInstance()',
+    'No metadata found for \'UndecoratedTestClass\'. Dependencies: Injector1. Be sure that it\'s decorated with \'@Injectable()\' or added explicitly with SetInstance()',
   );
   await using(new Injector(), (i) => {
     assertThrows(
       () => {
         i.getInstance(UndecoratedTestClass, [Injector]);
       },
-      (diError: any) => {
-        assert(diError instanceof DIError);
-        assert(diError.TypeName === 'UndecoratedTestClass');
-        assert(diError.message === expectedError.message);
-      },
+      DIError,
+      expectedError.message,
     );
   });
 });
@@ -291,33 +280,29 @@ Deno.test('Singleton with transient dependencies should throw an error', async (
     'Injector error: Singleton type \'St1\' depends on non-singleton injectables: Trs1:Transient',
   );
   await using(new Injector(), (i) => {
-    assertThrows(() => {
-      i.getInstance(St1);
-    }, (error: any) => {
-      assert(error instanceof DIError);
-      assertEquals(error.message, diError.message);
-      assertEquals((error as DIError).TypeName, 'St1');
-    });
+    assertThrows(
+      () => {
+        i.getInstance(St1);
+      },
+      DIError,
+      diError.message,
+    );
   });
-});
 
-Deno.test('Singleton with scoped dependencies should throw an error', async () => {
-  @Injectable({ lifetime: ServiceLifetime.Scoped })
-  class Sc1 {}
+  Deno.test('Singleton with scoped dependencies should throw an error', async () => {
+    @Injectable({ lifetime: ServiceLifetime.Scoped })
+    class Sc1 {}
 
-  @Injectable({ lifetime: ServiceLifetime.Singleton })
-  class St2 {
-    constructor(public sc: Sc1) {}
-  }
-  const diError = new DIError(
-    St2,
-    'Injector error: Singleton type \'St2\' depends on non-singleton injectables: Sc1:Scoped',
-  );
-  await using(new Injector(), (i) => {
-    assertThrows(() => i.getInstance(St2), (error: unknown) => {
-      assert(error instanceof DIError);
-      assertEquals(error.message, diError.message);
-      assertEquals(error.TypeName, 'St2');
+    @Injectable({ lifetime: ServiceLifetime.Singleton })
+    class St2 {
+      constructor(public sc: Sc1) {}
+    }
+    const diError = new DIError(
+      St2,
+      'Injector error: Singleton type \'St2\' depends on non-singleton injectables: Sc1:Scoped',
+    );
+    await using(new Injector(), (i) => {
+      assertThrows(() => i.getInstance(St2), DIError, diError.message);
     });
   });
 });
@@ -335,10 +320,6 @@ Deno.test('Scoped with transient dependencies should throw an error', () => {
     'Injector error: Scoped type \'Sc2\' depends on transient injectables: Tr2:Transient',
   );
   using(new Injector(), (i) => {
-    assertThrows(() => i.getInstance(Sc2), (error: unknown) => {
-      assert(error instanceof DIError);
-      assertEquals(error.message, diError.message);
-      assertEquals(error.TypeName, 'Sc2');
-    });
+    assertThrows(() => i.getInstance(Sc2), DIError, diError.message);
   });
 });
