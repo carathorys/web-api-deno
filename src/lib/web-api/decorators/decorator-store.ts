@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
-import { ActionParameter } from "./action/index.ts";
-import { ControllerParameter } from "./controller/index.ts";
+import 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
+import { ActionParameter } from './action/index.ts';
+import { ControllerParameter } from './controller/index.ts';
 
 type StoreData = ControllerParameter & {
   __type?: any;
@@ -39,6 +40,10 @@ class DecoratorStore {
         ...meta,
       });
     }
+  }
+
+  public get Store(): Map<string, StoreData> {
+    return this.store;
   }
 
   public appendActionMetadata(

@@ -1,6 +1,8 @@
 import { Context, IMiddleware, Next } from '../lib/web-api/middleware/index.ts';
 import { Server } from '../lib/web-api/server.ts';
 
+import './my-api.controller.ts';
+
 const port = 8080;
 
 const server = new Server({
@@ -16,7 +18,7 @@ server.use(async (ctx, next) => {
 
 server.use(async (ctx, next) => {
   console.log('2 started, next');
-  await next();
+  // await next();
   console.log('2 finished');
   // breaks the middleware chain
 });
@@ -34,7 +36,7 @@ class InPlaceMiddleware implements IMiddleware {
   async execute(ctx: Context, next: Next) {
     console.log('4 started, next');
     await next();
-    ctx.response = new Response('Not found', { status: 404 });
+    ctx.response = new Response('Resource not found', { status: 404 });
     console.log('4 finished');
   }
 }

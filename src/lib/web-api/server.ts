@@ -3,24 +3,31 @@ import {
   ConnInfo,
   Server as DenoServer,
   ServerInit as DenoServerInit,
-} from 'https://deno.land/std@0.134.0/http/server.ts';
+} from 'https://deno.land/std@0.160.0/http/server.ts';
 
 import { Context } from './middleware/context.ts';
 import { Middleware } from './middleware/index.ts';
 
 import { isConstructor } from '../utils/helpers/index.ts';
 
+import DecoratorStore from './decorators/decorator-store.ts';
+import { Injector } from '../dependency-injection/injector.ts';
+
 export class Server extends DenoServer {
   private middlewares: Middleware[] = [];
+  private readonly injector: Injector;
 
   /** */
   constructor(param?: Pick<DenoServerInit, 'hostname' | 'onError' | 'port'>) {
     super({
-      ...param,
+      hostname: param?.hostname,
+      onError: param?.onError,
+      port: param?.port,
       handler: (req: Request, connInfo: ConnInfo) => {
         return this.handleRequest(req, connInfo);
       },
     });
+    this.injector = new Injector();
   }
 
   /**
@@ -35,10 +42,15 @@ export class Server extends DenoServer {
    * given Context.
    */
   private async dispatch(context: Context) {
-    const control = { invocations: 0 };
-    await Server.invokeMiddlewares(context, this.middlewares, control);
-    if (control.invocations !== this.middlewares.length) {
-      console.warn('Somewhere the middleware chain was broke!');
+    try {
+      const control = { invocations: 0 };
+      await Server.invokeMiddlewares(context, this.middlewares, control);
+      if (control.invocations !== this.middlewares.length) {
+        console.warn('Somewhere the middleware chain was broke!');
+        context.response = new Response('Internal server error', { status: 500 });
+      }
+    } catch (error: unknown) {
+      context.response = new Response('Internal server error', { status: 500 });
     }
   }
 
@@ -51,7 +63,7 @@ export class Server extends DenoServer {
     options: { invocations: number },
   ): Promise<void> {
     if (!middlewares.length) return;
-
+    console.log('DecoratorStore contents: ', DecoratorStore.Store);
     const currentMiddleware = middlewares[0];
     const next = async () => {
       options.invocations += 1;
@@ -72,6 +84,7 @@ export class Server extends DenoServer {
 
   async handleRequest(req: Request, conn: ConnInfo) {
     const ctx = new Context(req, new Response());
+
     await this.dispatch(ctx);
     return ctx.response;
   }
