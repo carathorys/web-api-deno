@@ -1,7 +1,8 @@
+import { ConsoleLogger } from '../lib/logger/index.ts';
 import { Context, IMiddleware, Next } from '../lib/web-api/middleware/index.ts';
 import { Server } from '../lib/web-api/server.ts';
 
-import './my-api.controller.ts';
+import './controllers/index.ts';
 
 const port = 8080;
 
@@ -11,14 +12,15 @@ const server = new Server({
 });
 
 server.use(async (ctx, next) => {
-  console.log('1 started, next');
+  const logger = ctx.getInstance(ConsoleLogger);
+  logger.debug('1 started, next', ctx.request);
   await next();
-  console.log('1 finished');
+  logger.debug('1 finished');
 });
 
 server.use(async (ctx, next) => {
   console.log('2 started, next');
-  // await next();
+  await next();
   console.log('2 finished');
   // breaks the middleware chain
 });

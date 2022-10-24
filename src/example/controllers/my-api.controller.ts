@@ -1,4 +1,4 @@
-import { Action, Controller } from '../lib/web-api/index.ts';
+import { Action, Controller } from '../../lib/web-api/index.ts';
 
 @Controller()
 export class MyApiController {

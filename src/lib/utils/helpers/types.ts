@@ -28,9 +28,8 @@ export type ReadonlyPropertyType<T, U> =
   & Readonly<IncludePropertyTypes<T, U>>;
 
 // Helper type
-export type IfEquals<X, Y, A = X, B = never> =
-  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A
-    : B;
+export type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A
+  : B;
 
 // Type that defines a constructable class
 export type Constructable<T> =

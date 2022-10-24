@@ -1,3 +1,4 @@
+// deno-lint-ignore-file ban-types
 import { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
 
 import { DIError } from './errors/di.error.ts';
@@ -119,7 +120,6 @@ export class Injector implements IDisposable {
    * @param instance The created instance
    * @param key The class key to be persisted (optional, calls back to the instance's constructor)
    */
-  // deno-lint-ignore ban-types
   public setExplicitInstance<T extends object>(instance: T, key?: Constructable<T>) {
     const ctor = key || (instance.constructor as Constructable<T>);
     if (!Injector.meta.has(ctor)) {

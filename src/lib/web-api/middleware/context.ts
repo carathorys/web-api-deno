@@ -1,8 +1,13 @@
+import { Injector } from '../../dependency-injection/injector.ts';
+import { Disposable } from '../../disposable/decorators/disposable-decorator.ts';
+import { Constructable } from '../../utils/helpers/index.ts';
+
+@Disposable({ recursive: true })
 export class Context {
-  private _request: Request;
+  private readonly _request: Request;
   private _response: Response;
   /** */
-  constructor(request: Request, response: Response) {
+  constructor(private readonly injector: Injector, request: Request, response: Response) {
     this._request = request;
     this._response = response;
   }
@@ -14,5 +19,9 @@ export class Context {
   }
   public set response(value: Response) {
     this._response = value;
+  }
+
+  public getInstance<T>(ctor: Constructable<T>): T {
+    return this.injector.getInstance(ctor);
   }
 }

@@ -83,7 +83,7 @@ export class Server extends DenoServer {
   }
 
   async handleRequest(req: Request, conn: ConnInfo) {
-    const ctx = new Context(req, new Response());
+    const ctx = new Context(this.injector.createChild(), req, new Response());
 
     await this.dispatch(ctx);
     return ctx.response;
