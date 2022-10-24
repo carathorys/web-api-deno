@@ -4,6 +4,7 @@ import { Constructable } from '../../utils/helpers/types.ts';
 import { Injector } from '../injector.ts';
 import { InjectableParameters, ServiceLifetime } from '../parameters/index.ts';
 import { InjectableMetadata } from '../metadata/injectable-metadata.model.ts';
+import { ClassDecoratorFactory } from '../../utils/index.ts';
 
 export const defaultInjectableParameters: InjectableParameters = {
   lifetime: ServiceLifetime.Transient,
@@ -15,8 +16,10 @@ export const defaultInjectableParameters: InjectableParameters = {
  * @param options The options object
  * @returns void
  */
-export const Injectable = (options?: Partial<InjectableParameters>) => {
-  return <T extends Constructable<unknown>>(ctor: T) => {
+export const Injectable: ClassDecoratorFactory<Partial<InjectableParameters>> = (
+  options?: Partial<InjectableParameters>,
+) => {
+  return <T, TCtor extends Constructable<T>>(ctor: TCtor) => {
     const meta = Reflect.getMetadata('design:paramtypes', ctor);
     const metaValue: InjectableMetadata = {
       dependencies: (meta &&

@@ -109,7 +109,7 @@ export class Injector implements IDisposable {
     const deps = meta.dependencies.map((dep) => this.getInstance(dep, [...dependencies, ctor]));
     const newInstance = new ctor(...deps);
     if (meta.options.lifetime !== ServiceLifetime.Transient) {
-      this.setExplicitInstance(newInstance);
+      this.setExplicitInstance(newInstance as object);
     }
     return newInstance;
   }

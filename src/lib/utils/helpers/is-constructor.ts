@@ -1,11 +1,14 @@
+// deno-lint-ignore-file no-explicit-any
+
+import { Constructable } from './types.ts';
+
 const handler = {
   construct() {
     return handler;
   },
 };
 
-// deno-lint-ignore ban-types no-explicit-any
-export const isConstructor = (x: any): x is (new (...args: any[]) => object) => {
+export const isConstructor = (x: any): x is Constructable<unknown> => {
   try {
     return !!(new (new Proxy(x, handler))());
   } catch (e) {

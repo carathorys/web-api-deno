@@ -1,4 +1,4 @@
-// deno-lint-ignore-file ban-types no-explicit-any
+// deno-lint-ignore-file no-explicit-any
 
 /** Include property keys from T where the property is assignable to U */
 export type IncludePropertyKeys<T, U> = {
@@ -32,9 +32,9 @@ export type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) ex
   : B;
 
 // Type that defines a constructable class
-export type Constructable<T> =
-  & (new (...args: any[]) => object)
-  & (new (...args: any[]) => T);
+export type Constructable<T = any> =
+  & (new (...args: any[]) => T)
+  & (new (...args: any[]) => any);
 
 // Excludes readonly fields of type T
 export type WritableKeys<T> = {

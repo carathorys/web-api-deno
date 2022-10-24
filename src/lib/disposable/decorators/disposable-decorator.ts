@@ -2,10 +2,11 @@
 import { DisposeError, ObjectDisposedError } from '../errors/index.ts';
 import { IDisposable } from '../interfaces/disposable.ts';
 import { DisposableDecoratorParameters } from './disposable-decorator.parameters.ts';
+import { ClassDecoratorFactory, Constructable } from '../../utils/index.ts';
 
-export const Disposable = (parameters?: DisposableDecoratorParameters) =>
-  <T extends { new (...args: any[]): any }>(ctor: T) => {
-    class DisposableClass extends ctor implements IDisposable {
+export const Disposable: ClassDecoratorFactory<DisposableDecoratorParameters> =
+  (parameters?: DisposableDecoratorParameters) => <T, TCTor extends Constructable<T>>(ctor: TCTor): any => {
+    return class extends ctor implements IDisposable {
       __isDisposing = false;
       __isDisposed = false;
       static readonly __baseClass = ctor;
@@ -32,7 +33,5 @@ export const Disposable = (parameters?: DisposableDecoratorParameters) =>
           this.__isDisposing = false;
         }
       }
-    }
-
-    return DisposableClass;
+    };
   };

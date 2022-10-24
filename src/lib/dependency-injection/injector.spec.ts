@@ -254,7 +254,7 @@ Deno.test('Requesting an undecorated instance should throw an error', async () =
   class UndecoratedTestClass {}
   const expectedError = new DIError(
     UndecoratedTestClass,
-    'No metadata found for \'UndecoratedTestClass\'. Dependencies: Injector1. Be sure that it\'s decorated with \'@Injectable()\' or added explicitly with SetInstance()',
+    'No metadata found for \'UndecoratedTestClass\'. Dependencies: . Be sure that it\'s decorated with \'@Injectable()\' or added explicitly with SetInstance()',
   );
   await using(new Injector(), (i) => {
     assertThrows(

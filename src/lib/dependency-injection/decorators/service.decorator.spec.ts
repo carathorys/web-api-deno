@@ -10,3 +10,24 @@ Deno.test('ServiceDecorator should decorate class', () => {
   const x = new MyServiceClass();
   assert(x instanceof MyServiceClass);
 });
+
+Deno.test('ServiceDecorator should decorate class 2', () => {
+  @Service({ provideIn: 'root', lifetime: ServiceLifetime.Singleton })
+  class MyProvidedClass {
+  }
+
+  @Service({ lifetime: ServiceLifetime.Singleton })
+  class MyDependency {}
+
+  @Service({
+    lifetime: ServiceLifetime.Singleton,
+    provideIn: MyProvidedClass,
+  })
+  class MyServiceClass {
+    /** */
+    constructor(dep: MyDependency) {
+    }
+  }
+
+  console.log(MyServiceClass);
+});
