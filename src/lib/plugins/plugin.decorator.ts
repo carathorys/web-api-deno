@@ -17,7 +17,7 @@ export const Plugin: ClassDecoratorFactory<PluginParameters> = (
         this.___injector = new Injector();
         if (parameters?.services?.length) {
           parameters.services.forEach((service) => {
-            this.___injector.meta.set(service, Reflect.getMetadata(INJECTABLE_METADATA, ctor));
+            this.___injector.meta.set(service, Reflect.getMetadata(INJECTABLE_METADATA, service));
           });
         }
       }

@@ -48,5 +48,5 @@ Deno.test('Not registered', () => {
 
   const myPlugin = new MyPlugin();
   const pluginInjector = (myPlugin as IPlugin).___injector;
-  assert(pluginInjector.getInstance(MyService));
+  assertThrows(() => pluginInjector.getInstance(MyService));
 });

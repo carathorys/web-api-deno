@@ -257,12 +257,12 @@ Deno.test('Requesting an undecorated instance should throw an error', async () =
   class UndecoratedTestClass {}
   const expectedError = new DIError(
     UndecoratedTestClass,
-    'No metadata found for \'UndecoratedTestClass\'. Dependencies: . Be sure that it\'s decorated with \'@Injectable()\' or added explicitly with SetInstance()',
+    `No metadata found for 'UndecoratedTestClass'. Be sure that it's decorated with '@Injectable()' or added explicitly with SetInstance()`,
   );
   await using(new Injector(), (i) => {
     assertThrows(
       () => {
-        i.getInstance(UndecoratedTestClass, [Injector]);
+        i.getInstance(UndecoratedTestClass);
       },
       DIError,
       expectedError.message,
@@ -271,10 +271,11 @@ Deno.test('Requesting an undecorated instance should throw an error', async () =
 });
 
 Deno.test('Singleton with transient dependencies should throw an error', async () => {
-  @Injectable({ lifetime: ServiceLifetime.Transient })
+  const injector = new Injector();
+  @Injectable({ lifetime: ServiceLifetime.Transient, provideIn: injector })
   class Trs1 {}
 
-  @Injectable({ lifetime: ServiceLifetime.Singleton })
+  @Injectable({ lifetime: ServiceLifetime.Singleton, provideIn: injector })
   class St1 {
     constructor(public lt: Trs1) {}
   }
@@ -282,7 +283,7 @@ Deno.test('Singleton with transient dependencies should throw an error', async (
     St1,
     'Injector error: Singleton type \'St1\' depends on non-singleton injectables: Trs1:Transient',
   );
-  await using(new Injector(), (i) => {
+  await using(injector, (i) => {
     assertThrows(
       () => {
         i.getInstance(St1);
@@ -311,10 +312,11 @@ Deno.test('Singleton with transient dependencies should throw an error', async (
 });
 
 Deno.test('Scoped with transient dependencies should throw an error', () => {
-  @Injectable({ lifetime: ServiceLifetime.Transient })
+  const provideIn = new Injector();
+  @Injectable({ lifetime: ServiceLifetime.Transient, provideIn })
   class Tr2 {}
 
-  @Injectable({ lifetime: ServiceLifetime.Scoped })
+  @Injectable({ lifetime: ServiceLifetime.Scoped, provideIn })
   class Sc2 {
     constructor(public sc: Tr2) {}
   }
@@ -322,7 +324,7 @@ Deno.test('Scoped with transient dependencies should throw an error', () => {
     Sc2,
     'Injector error: Scoped type \'Sc2\' depends on transient injectables: Tr2:Transient',
   );
-  using(new Injector(), (i) => {
+  using(provideIn, (i) => {
     assertThrows(() => i.getInstance(Sc2), DIError, diError.message);
   });
 });
