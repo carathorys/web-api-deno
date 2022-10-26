@@ -66,7 +66,7 @@ Deno.test('Should throw an error when setting an Injector instance', async () =>
 
 Deno.test('Should return from a parent injector if available', () => {
   const parent = new Injector();
-  const i = parent.createChild();
+  const i = Injector.create(parent);
   @Injectable({ lifetime: ServiceLifetime.Singleton })
   class InstanceClass {}
   const instance = new InstanceClass();
@@ -77,9 +77,9 @@ Deno.test('Should return from a parent injector if available', () => {
 
 Deno.test('Should create instance on a parent injector if not available', () => {
   const parent = new Injector();
-  const i = parent.createChild();
-  @Injectable({ lifetime: ServiceLifetime.Singleton })
+  @Injectable({ lifetime: ServiceLifetime.Singleton, provideIn: parent })
   class InstanceClass {}
+  const i = parent.createChild();
   assert(i.getInstance(InstanceClass) instanceof InstanceClass);
   assert(parent.cachedSingletons.get(InstanceClass) instanceof InstanceClass);
 });
@@ -87,33 +87,36 @@ Deno.test('Should create instance on a parent injector if not available', () => 
 Deno.test('Should resolve parameters', () => {
   const i = new Injector();
 
-  @Injectable()
+  @Injectable({ provideIn: i })
   class Injected1 {}
-  @Injectable()
+  @Injectable({ provideIn: i })
   class Injected2 {}
 
-  @Injectable()
+  @Injectable({ provideIn: i })
   class InstanceClass {
     constructor(public injected1: Injected1, public injected2: Injected2) {
       /** */
     }
   }
-  assert(i.getInstance(InstanceClass) instanceof InstanceClass);
-  assert(i.getInstance(InstanceClass).injected1 instanceof Injected1);
-  assert(i.getInstance(InstanceClass).injected2 instanceof Injected2);
+
+  const instance = i.getInstance(InstanceClass);
+
+  assert(instance instanceof InstanceClass);
+  assert(instance.injected1 instanceof Injected1);
+  assert(instance.injected2 instanceof Injected2);
 });
 
 Deno.test('Should resolve parameters recursively', () => {
   const i = new Injector();
 
-  @Injectable()
+  @Injectable({ provideIn: i })
   class Injected1 {}
-  @Injectable()
+  @Injectable({ provideIn: i })
   class Injected2 {
     constructor(public injected1: Injected1) {}
   }
 
-  @Injectable()
+  @Injectable({ provideIn: i })
   class InstanceClass {
     constructor(public injected2: Injected2) {}
   }

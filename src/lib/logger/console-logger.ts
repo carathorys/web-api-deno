@@ -2,12 +2,8 @@ import { ILogger, Logger } from './logger.interface.ts';
 import { Injectable } from '../dependency-injection/decorators/injectable.decorator.ts';
 import { ServiceLifetime } from '../dependency-injection/parameters/service-lifetime.enum.ts';
 
-@Injectable({ lifetime: ServiceLifetime.Transient })
+@Injectable({ lifetime: ServiceLifetime.Scoped })
 export class ConsoleLogger implements ILogger, Logger {
-  /** */
-  constructor() {
-  }
-
   error(message: string, error: unknown, ...args: unknown[]): void {
     console.error(message, error, args);
   }

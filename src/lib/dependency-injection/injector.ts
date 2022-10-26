@@ -10,6 +10,8 @@ import { Constructable } from '../utils/helpers/types.ts';
 
 import type { InjectorParameters } from './parameters/index.ts';
 import { InjectableParameters, ServiceLifetime } from './parameters/index.ts';
+import { INJECTABLE_METADATA } from './decorators/index.ts';
+import { InjectableMetadata } from './metadata/injectable-metadata.model.ts';
 
 @Disposable({ recursive: true })
 export class Injector implements IDisposable {
@@ -18,12 +20,9 @@ export class Injector implements IDisposable {
   /**
    * Static class metadata map, filled by the @Injectable() decorator
    */
-  public static meta: Map<
+  public readonly meta: Map<
     Constructable<unknown>,
-    {
-      dependencies: Array<Constructable<unknown>>;
-      options: InjectableParameters;
-    }
+    InjectableMetadata
   > = new Map();
 
   public readonly cachedSingletons: Map<Constructable<unknown>, unknown> = new Map();
@@ -39,6 +38,22 @@ export class Injector implements IDisposable {
     return ctor;
   }
 
+  public getMetadata(ctor: Constructable): InjectableMetadata {
+    if (this.meta.has(ctor)) {
+      return this.meta.get(ctor)!;
+    }
+    const parentMetadata = this.parameters?.parent?.getMetadata(ctor);
+    if (parentMetadata) {
+      return parentMetadata;
+    }
+    throw new DIError(
+      ctor,
+      `No metadata found for '${
+        this.getOriginalType(ctor).name
+      }'. Be sure that it's decorated with '@Injectable()' or added explicitly with SetInstance()`,
+    );
+  }
+
   /**
    * @param ctor The constructor object (e.g. MyClass)
    * @param dependencies Resolved dependencies (usually provided by the framework)
@@ -49,24 +64,15 @@ export class Injector implements IDisposable {
       return this as unknown as T;
     }
 
-    const meta = Injector.meta.get(ctor);
-    if (!meta) {
-      throw new DIError(
-        ctor,
-        `No metadata found for '${this.getOriginalType(ctor).name}'. Dependencies: ${
-          dependencies
-            .map((d) => this.getOriginalType(d).name)
-            .join(',')
-        }. Be sure that it's decorated with '@Injectable()' or added explicitly with SetInstance()`,
-      );
-    }
+    const meta = this.getMetadata(ctor);
+
     if (dependencies.includes(ctor)) {
       throw new DIError(ctor, `Circular dependencies found.`);
     }
 
     if (meta.options.lifetime === ServiceLifetime.Singleton) {
       const invalidDeps = meta.dependencies
-        .map((dep) => ({ meta: Injector.meta.get(dep), dep }))
+        .map((dep) => ({ meta: this.meta.get(dep), dep }))
         .filter(
           (m) =>
             m.meta &&
@@ -74,6 +80,7 @@ export class Injector implements IDisposable {
               m.meta.options.lifetime === ServiceLifetime.Transient),
         )
         .map((i) => i.meta && `${i.dep.name}:${ServiceLifetime[i.meta.options.lifetime]}`);
+
       if (invalidDeps.length) {
         throw new DIError(
           ctor,
@@ -84,7 +91,7 @@ export class Injector implements IDisposable {
       }
     } else if (meta.options.lifetime === ServiceLifetime.Scoped) {
       const invalidDeps = meta.dependencies
-        .map((dep) => ({ meta: Injector.meta.get(dep), dep }))
+        .map((dep) => ({ meta: this.meta.get(dep), dep }))
         .filter((m) => m.meta && m.meta.options.lifetime === ServiceLifetime.Transient)
         .map((i) => i.meta && `${this.getOriginalType(i.dep).name}:${ServiceLifetime[i.meta.options.lifetime]}`);
       if (invalidDeps.length) {
@@ -122,9 +129,9 @@ export class Injector implements IDisposable {
    */
   public setExplicitInstance<T extends object>(instance: T, key?: Constructable<T>) {
     const ctor = key || (instance.constructor as Constructable<T>);
-    if (!Injector.meta.has(ctor)) {
+    if (!this.meta.has(ctor)) {
       const meta = Reflect.getMetadata('design:paramtypes', ctor);
-      Injector.meta.set(ctor, {
+      this.meta.set(ctor, {
         dependencies: (meta &&
           (meta as unknown[]).map((param) => {
             return param;
@@ -147,6 +154,12 @@ export class Injector implements IDisposable {
    */
   public createChild(options?: Partial<Injector['parameters']>) {
     return new Injector({ ...options, parent: this });
+  }
+
+  public static create(parent?: Injector, options?: Partial<Injector['parameters']>, ...services: Constructable[]) {
+    const injector: Injector = parent ? parent.createChild(options) : new Injector(options);
+    services.forEach((service) => injector.meta.set(service, Reflect.getMetadata(INJECTABLE_METADATA, service)));
+    return injector;
   }
 
   /**

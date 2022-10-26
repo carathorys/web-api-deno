@@ -1,9 +1,10 @@
 // deno-lint-ignore-file no-explicit-any no-unused-vars
+import { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
 import { assert } from 'https://deno.land/std@0.160.0/testing/asserts.ts';
 
 import { Injector } from '../injector.ts';
 import { ServiceLifetime } from '../parameters/service-lifetime.enum.ts';
-import { Injectable } from './injectable.decorator.ts';
+import { Injectable, INJECTABLE_METADATA } from './injectable.decorator.ts';
 
 Deno.test('Injectable decorator should decorate classes', () => {
   @Injectable()
@@ -31,7 +32,7 @@ Deno.test('InjectableDecorator should resolve ctor parameters', () => {
 
   const a = new MyCustomService(null as any);
   assert(a instanceof MyCustomService);
-  assert(Injector.meta.has(MyCustomService));
+  assert(!!Reflect.getMetadata(INJECTABLE_METADATA, MyCustomService));
 });
 
 Deno.test('Should resolve ctor paramaters', () => {
@@ -66,5 +67,5 @@ Deno.test('Should resolve ctor paramaters', () => {
 
   const a = new MyCustomService(null as any);
   assert(a instanceof MyCustomService);
-  assert(Injector.meta.has(MyCustomService));
+  assert(Reflect.getMetadata(INJECTABLE_METADATA, MyCustomService));
 });

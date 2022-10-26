@@ -1,7 +1,6 @@
 import { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
 import { Constructable } from '../../utils/helpers/types.ts';
 
-import { Injector } from '../injector.ts';
 import { InjectableParameters, ServiceLifetime } from '../parameters/index.ts';
 import { InjectableMetadata } from '../metadata/injectable-metadata.model.ts';
 import { ClassDecoratorFactory } from '../../utils/index.ts';
@@ -9,6 +8,8 @@ import { ClassDecoratorFactory } from '../../utils/index.ts';
 export const defaultInjectableParameters: InjectableParameters = {
   lifetime: ServiceLifetime.Transient,
 };
+
+export const INJECTABLE_METADATA = Symbol('INJECTABLE_METADATA');
 
 /**
  * Decorator method for tagging a class as injectable
@@ -29,6 +30,9 @@ export const Injectable: ClassDecoratorFactory<Partial<InjectableParameters>> = 
         [],
       options: { ...defaultInjectableParameters, ...options },
     };
-    Injector.meta.set(ctor, metaValue);
+    Reflect.defineMetadata(INJECTABLE_METADATA, metaValue, ctor);
+    if (options?.provideIn) {
+      options.provideIn.meta.set(ctor, metaValue);
+    }
   };
 };
